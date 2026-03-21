@@ -12,11 +12,19 @@ const port = 3000;
 // Middleware
 app.use(express.json());
 
-// CORS  
 app.use(cors({
-  origin: 'http://localhost:5173',
-  methods: 'GET,POST,PUT,PATCH,DELETE',
-  allowedHeaders: ['Content-Type', 'Authorization']
+  origin: function (origin, callback) {
+    const allowed = [
+      'http://localhost:5173',
+      'https://futureblink-frontend-for-assignment.vercel.app'
+    ];
+
+    if (!origin || allowed.includes(origin)) {
+      callback(null, true);
+    } else {
+      callback(new Error("CORS not allowed"));
+    }
+  }
 }));
 
 // DB
