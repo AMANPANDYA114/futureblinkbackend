@@ -22,7 +22,7 @@ app.use(cors({
 // DB
 connectDB();
 
-// Routes
+// Route
 app.use('/api', chatRoutes);
 
 // Root
