@@ -1,44 +1,55 @@
-require('dotenv').config();
-
-const express = require('express');
-const cors = require('cors');
-
-const connectDB = require('./config/db.js');
-const chatRoutes = require('./routes/chatRoutes.js');
+const express = require("express");
+const puppeteer = require("puppeteer");
 
 const app = express();
 const port = 3000;
 
-// Middleware
-app.use(express.json());
+const delay = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 
-app.use(cors({
-  origin: function (origin, callback) {
-    const allowed = [
-      'http://localhost:5173',
-      'https://futureblink-frontend-for-assignment.vercel.app'
-    ];
+app.get("/bot", async (req, res) => {
+  try {
+    const browser = await puppeteer.launch({
+      headless: false,
+      userDataDir: "./user_data",
+      args: ["--no-sandbox"],
+    });
 
-    if (!origin || allowed.includes(origin)) {
-      callback(null, true);
-    } else {
-      callback(new Error("CORS not allowed"));
-    }
+    const page = await browser.newPage();
+
+    const number = "919096041005";
+    const message = "Auto message without click 🚀";
+
+    const url = `https://web.whatsapp.com/send?phone=${number}&text=${encodeURIComponent(message)}`;
+
+    await page.goto(url, {
+      waitUntil: "networkidle2",
+      timeout: 0,
+    });
+
+    console.log("WhatsApp opened");
+
+    // ✅ WAIT for message box (important)
+    const box = await page.waitForSelector('footer div[contenteditable="true"]');
+
+    await delay(2000);
+
+    // ✅ CLICK to focus (VERY IMPORTANT)
+    await box.click();
+
+    await delay(1000);
+
+    // ✅ PRESS ENTER (auto send)
+    await page.keyboard.press("Enter");
+
+    console.log("Message sent automatically ✅");
+
+    res.send("Message auto-sent!");
+  } catch (err) {
+    console.error(err);
+    res.send("Error");
   }
-}));
-
-// DB
-connectDB();
-
-// Route
-app.use('/api', chatRoutes);
-
-// Root
-app.get('/', (req, res) => {
-  res.send('API running ');
 });
 
-// Start server
 app.listen(port, () => {
-  console.log(`Server running on port ${port}`);
+  console.log(`Server running http://localhost:${port}`);
 });
